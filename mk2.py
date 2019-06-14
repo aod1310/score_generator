@@ -33,7 +33,7 @@ class MyWindow(QMainWindow, form_class):
                                    rate=self.RATE,
                                    input=True,
                                    output=True,
-                                   input_device_index=1,
+                                   input_device_index=3,
                                    stream_callback=self.callback)  # 1=mic, #2=stereomix, #3=ux1
         # 악보객체를 위한 변수
         self.music_sheet = None
