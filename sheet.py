@@ -15,7 +15,7 @@ def get_onsetboundaries(y, sr=22050):
     hop_length = 300
     onset_samples = librosa.onset.onset_detect(y, sr=sr, units='samples', hop_length=hop_length, backtrack=False,
                                                pre_max=15, post_max=8, pre_avg=90, post_avg=90, delta=0.15,
-                                               wait=1)
+                                               wait=0)
     onset_boundaries = np.concatenate([[0], onset_samples, [len(y)]])
     return onset_boundaries
 
@@ -26,13 +26,13 @@ def get_pitch(section, sr):
     C = np.abs(librosa.cqt(section, sr=sr, norm=1))
     s = []
     for c in C:
-        if np.log(sum(c)**2) < 5:
+        if np.log(sum(c)**2) < 2:
             s.append(0)
         else:
             s.append(sum(c)**2)
     s = np.array(s)
     #print(s)
-    indexes = convert_to_pitch(librosa.util.peak_pick(s, pre_max=11, post_max=16, pre_avg=90, post_avg=90, delta=0.2, wait=1))
+    indexes = convert_to_pitch(librosa.util.peak_pick(s, pre_max=8, post_max=13, pre_avg=90, post_avg=90, delta=0.2, wait=0))
     return indexes
     '''
 def get_pitch(section, sr):
