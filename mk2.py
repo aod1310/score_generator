@@ -32,8 +32,7 @@ class MyWindow(QMainWindow, form_class):
                                    channels=self.CHANNEL,
                                    rate=self.RATE,
                                    input=True,
-                                   output=True,
-                                   input_device_index=1,
+                                   input_device_index=2,
                                    stream_callback=self.callback)  # 1=mic, #2=stereomix, #3=ux1
         # 악보객체를 위한 변수
         self.music_sheet = None
@@ -72,6 +71,7 @@ class MyWindow(QMainWindow, form_class):
         self.pbtn_start.setStyleSheet('QPushButton {color: red;}')
         #button.setStyleSheet('QPushButton {background-color: #A3C1DA; color: red;}')
 
+    # 녹음하기위한 callback함수
     def callback(self, in_data, frame_count, time_info, flag):
         self.frames.append(in_data)
         in_data = np.fromstring(in_data, np.int16)
@@ -234,7 +234,8 @@ class MyWindow(QMainWindow, form_class):
             self.play_stream.start_stream()
             self.timer.start()
         return self
-
+    
+    # 저장된 temp.wav를 재생하기위한 callback함수
     def play(self, in_data, frame_count, time_info, status):
         data = self.wf.readframes(frame_count)
 

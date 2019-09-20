@@ -4,6 +4,7 @@ import scipy.signal as sig
 import numpy as np
 from music21 import *
 import scipy.signal as sg
+import peakutils
 
 def read_wav(filename):
     y, sr = librosa.load(filename, sr=22050)
@@ -18,6 +19,8 @@ def get_onsetboundaries(y, sr=22050):
     onset_boundaries = np.concatenate([[0], onset_samples, [len(y)]])
     return onset_boundaries
 
+# 원본
+'''
 def get_pitch(section, sr):
     section = sg.medfilt(section)
     C = np.abs(librosa.cqt(section, sr=sr, norm=1))
@@ -30,6 +33,24 @@ def get_pitch(section, sr):
     s = np.array(s)
     #print(s)
     indexes = convert_to_pitch(librosa.util.peak_pick(s, pre_max=11, post_max=16, pre_avg=90, post_avg=90, delta=0.2, wait=1))
+    return indexes
+    '''
+def get_pitch(section, sr):
+    section = sg.medfilt(section)
+    C = np.abs(librosa.cqt(section, sr=sr, norm=1))
+    s = []
+    for c in C:  # 출력값이 작은(잡음 etc) 부분은 과감하게 삭제 음이 있는곳은 높은 출력값을 나타내게 되어있음
+        if np.log(sum(c)**2) < 5:
+            s.append(0)
+        else:
+            s.append(sum(c))
+    s = np.array(s)
+    s_max = s.max()
+    s_min = s.min()  # 어떤 출력값이 들어와도 일정하게 peak를 검출하기위해 정규화
+    if s_max == 0: return []
+    s = (s-s_min) / (s_max-s_min)
+    #indexes = convert_to_pitch(librosa.util.peak_pick(s, pre_max=11, post_max=16, pre_avg=90, post_avg=90, delta=0.2, wait=1))
+    indexes = convert_to_pitch(peakutils.indexes(s, thres=0.8879, thres_abs=True))
     return indexes
 
 
@@ -97,7 +118,7 @@ music_sheet.show()
 
 
 def get_sheet():
-    y, sr = read_wav('doremi.wav')
+    y, sr = read_wav('C:/mkyu/test4.wav')
     onset_boundaries = get_onsetboundaries(y, sr)
 
     chords = []
@@ -111,11 +132,17 @@ def get_sheet():
     times = set_duration(librosa.samples_to_time(onset_boundaries, sr=sr))
     music_sheet = init_stream()
     for notes, length in zip(chords, times):
-        n = set_chrod(notes)
-        n.quarterLength = length
-        music_sheet.append(n)
+#        print(notes, length)
+        if notes:
+            n = set_chrod(notes)
+            n.quarterLength = length
+            music_sheet.append(n)
+        else: # 코드없이 길이만 있을경우에는 쉼표를 넣어야겠죵?
+            music_sheet.append(note.Rest(quarterLength=length))
 
-    music_sheet.show('midi')
+    music_sheet.show()
+    music_sheet.show('text')
+    music_sheet.write('midi', fp='result.mid')
 
 
 
